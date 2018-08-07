@@ -105,3 +105,8 @@ venv.bak/
 
 # PyCharm
 .idea/
+
+extracts.csv
+keyword_extracts.csv
+neg_extracts.csv
+subject_extracts.csv
