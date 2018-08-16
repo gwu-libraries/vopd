@@ -94,11 +94,11 @@ def process_transcript_iter(transcript_words, window_size=10):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--window', help='number of words that subject and keyword must be within (default=10)', type=int,
+    parser.add_argument('--window', help='number of words that subject and keyword must be within (default = 10)', type=int,
                         default=10)
-    parser.add_argument('--context', help='number of words before and after subject and keyword to extract (default=10)', type=int,
+    parser.add_argument('--context', help='number of words before and after subject and keyword to extract (default = 10)', type=int,
                         default=10)
-    parser.add_argument('--ask', action='store_true', help='Ask about each instance of co-location to manually code as relevant or not (default = code all as meaningful)')
+    parser.add_argument('--ask', action='store_true', help='Ask about each instance of co-location to manually code as relevant or not (default = code all as relevant)')
     parser.add_argument('transcript', help='filepath to transcript pdf or directory')
 
     args = parser.parse_args()
