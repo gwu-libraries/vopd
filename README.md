@@ -20,7 +20,7 @@ optional arguments:
 
 **`keyword_extracts.csv`** - All found instances of keywords
 
-**`subject_extracts.csv`*** - All found instances of subjects
+**`subject_extracts.csv`** - All found instances of subjects
 
 **`pos_extracts.csv`** - Co-located pairs of keywords and subjects coded as meaningful 
 
