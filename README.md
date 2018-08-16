@@ -12,7 +12,7 @@ optional arguments:
   -h, --help         show this help message and exit
   --window WINDOW    number of words that subject and keyword must be within (default = 10)
   --context CONTEXT  number of words before and after subject and keyword to extract (default = 10)
-  --ask              Ask about each instance of co-location to manually code as meaningful or not (default = code all as meaningful)
+  --ask              Ask about each instance of co-location to manually code as relevant or not (default = code all as meaningful)
 ```
 
 
@@ -22,8 +22,8 @@ optional arguments:
 
 **`subject_extracts.csv`** - All found instances of subjects
 
-**`pos_extracts.csv`** - Co-located pairs of keywords and subjects coded as meaningful 
+**`pos_extracts.csv`** - Co-located pairs of keywords and subjects coded as relevant 
 
-**`neg_extracts.csv`** - Co-located pairs of keywords and subjects coded as *not* meaningful
+**`neg_extracts.csv`** - Co-located pairs of keywords and subjects coded as *not* relevant
 
 
