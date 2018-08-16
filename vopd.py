@@ -116,7 +116,7 @@ if __name__ == '__main__':
 
     headers = ['file', 'subject', 'subject_code', 'keyword', 'keyword_code', 'extract']
 
-    with open('extracts.csv', 'w') as extract_file, \
+    with open('pos_extracts.csv', 'w') as extract_file, \
             open('neg_extracts.csv', 'w') as neg_extract_file, \
             open('keyword_extracts.csv', 'w') as keyword_extract_file, \
             open('subject_extracts.csv', 'w') as subject_extract_file:
