@@ -7,14 +7,15 @@ import csv
 import re
 from nltk.tokenize import word_tokenize
 import nltk
-from normalize_terms import normalize_terms
-from subjects import subject_map
-from keywords import keyword_map
 
 nltk.download('punkt')
 
-subjects = list(subject_map.keys())
-keywords = list(keyword_map.keys())
+# global variables
+subject_map = {}
+keyword_map = {}
+subjects = []
+keywords = []
+normalize_terms = {}
 
 
 def extract_text(pdf_filepath):
@@ -98,10 +99,36 @@ if __name__ == '__main__':
                         default=10)
     parser.add_argument('--context', help='number of words before and after subject and keyword to extract (default = 10)', type=int,
                         default=10)
+    parser.add_argument('--subjectfile', help='subject list file (default = subjects.csv)', type=argparse.FileType('r'),
+                        default='subjects.csv')
+    parser.add_argument('--keywordfile', help='keyword list file (default = keywords.csv)', type=argparse.FileType('r'),
+                        default='keywords.csv')
+    parser.add_argument('--normalizefile', help='normalize terms file (default = normalize_terms.csv)', type=argparse.FileType('r'),
+                        default='normalize_terms.csv')
     parser.add_argument('--ask', action='store_true', help='Ask about each instance of co-location to manually code as relevant or not (default = code all as relevant)')
     parser.add_argument('transcript', help='filepath to transcript pdf or directory')
 
     args = parser.parse_args()
+
+    # Read subjects, keywords, and normalize_terms
+    with args.subjectfile as subjects_file:
+        subjects_csv = csv.reader(subjects_file)
+        for row in subjects_csv:
+            subjects += [row[0]]
+            subject_map[row[0]] = row[1]
+
+    with args.keywordfile as keywords_file:
+        keywords_csv = csv.reader(keywords_file)
+        for row in keywords_csv:
+            keywords += [row[0]]
+            keyword_map[row[0]] = row[1]
+
+    with args.normalizefile as normalize_terms_file:
+        normalize_terms_csv = csv.reader(normalize_terms_file)
+        for row in normalize_terms_csv:
+            normalize_terms[row[0]] = row[1]
+
+    # Compose m_transcript_filepaths list
     if not os.path.exists(args.transcript):
         print('{} does not exist'.format(args.transcript))
         sys.exit(1)
@@ -114,6 +141,7 @@ if __name__ == '__main__':
     else:
         m_transcript_filepaths.append(args.transcript)
 
+    # Start processing
     headers = ['file', 'subject', 'subject_code', 'keyword', 'keyword_code', 'extract']
 
     with open('pos_extracts.csv', 'w') as extract_file, \
