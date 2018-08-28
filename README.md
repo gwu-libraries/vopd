@@ -12,6 +12,9 @@ optional arguments:
   -h, --help         show this help message and exit
   --window WINDOW    number of words that subject and keyword must be within (default = 10)
   --context CONTEXT  number of words before and after subject and keyword to extract (default = 10)
+  --subjectfile SUBJECTFILE   subject list file (default = subjects.csv)
+  --keywordfile KEYWORDFILE   keyword list file (default = keywords.csv)
+  --normalizefile NORMALIZEFILE   normalize terms file (default = normalize_terms.csv)
   --ask              Ask about each instance of co-location to manually code as relevant or not (default = code all as relevant)
 ```
 
