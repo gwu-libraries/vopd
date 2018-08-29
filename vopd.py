@@ -97,8 +97,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--window', help='number of words that subject and keyword must be within (default = 10)', type=int,
                         default=10)
-    parser.add_argument('--context', help='number of words before and after subject and keyword to extract (default = 10)', type=int,
-                        default=10)
+    parser.add_argument('--context', help='number of words before and after subject and keyword to extract (default = 20)', type=int,
+                        default=20)
     parser.add_argument('--subjectfile', help='subject list file (default = subjects.csv)', type=argparse.FileType('r'),
                         default='subjects.csv')
     parser.add_argument('--keywordfile', help='keyword list file (default = keywords.csv)', type=argparse.FileType('r'),
