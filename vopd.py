@@ -1,5 +1,6 @@
 import argparse
 from pdfminer.high_level import extract_text_to_fp
+import datetime
 import io
 import os
 import sys
@@ -119,7 +120,6 @@ if __name__ == '__main__':
                         default='keywords.csv')
     parser.add_argument('--normalizefile', help='normalize terms file (default = normalize_terms.csv)', type=argparse.FileType('r'),
                         default='normalize_terms.csv')
-    parser.add_argument('--ask', action='store_true', help='Ask about each instance of co-location to manually code as relevant or not (default = code all as relevant)')
     parser.add_argument('transcript', help='filepath to transcript pdf or directory')
 
     args = parser.parse_args()
@@ -156,20 +156,25 @@ if __name__ == '__main__':
         m_transcript_filepaths.append(args.transcript)
 
     # Start processing
-    headers = ['file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'keyword', 'keyword_code', 'extract']
+    headers = ['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'keyword', 'keyword_code', 'relevant?', 'extract']
 
-    with open('pos_extracts.csv', 'w') as extract_file, \
-            open('neg_extracts.csv', 'w') as neg_extract_file, \
-            open('keyword_extracts.csv', 'w') as keyword_extract_file, \
-            open('subject_extracts.csv', 'w') as subject_extract_file:
+    if os.path.exists('extracts.csv'):
+        append_extracts = True
+        file_mode = 'a'
+    else:
+        append_extracts = False
+        file_mode = 'w'
+
+    with open('extracts.csv', file_mode) as extract_file, \
+            open('keyword_extracts.csv', file_mode) as keyword_extract_file, \
+            open('subject_extracts.csv', file_mode) as subject_extract_file:
         extract_csv = csv.writer(extract_file)
-        extract_csv.writerow(headers)
-        neg_extract_csv = csv.writer(neg_extract_file)
-        neg_extract_csv.writerow(headers)
         keyword_extract_csv = csv.writer(keyword_extract_file)
-        keyword_extract_csv.writerow(['file', 'show_date', 'show_id', 'show_name', 'keyword', 'keyword_code', 'extract'])
         subject_extract_csv = csv.writer(subject_extract_file)
-        subject_extract_csv.writerow(['file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'extract'])
+        if not append_extracts:
+            extract_csv.writerow(headers)
+            keyword_extract_csv.writerow(['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'keyword', 'keyword_code', 'extract'])
+            subject_extract_csv.writerow(['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'extract'])
 
         for m_transcript_filepath in m_transcript_filepaths:
             show_info = show_data(m_transcript_filepath)
@@ -179,12 +184,15 @@ if __name__ == '__main__':
             m_transcript_words = tokenize(m_transcript_text)
             for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_transcript_iter(m_transcript_words,
                                                                                               window_size=args.window):
+                extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
+
                 if m_keyword is None:
                     extract = ' '.join(
                         context(m_transcript_words, m_subject_pos,
                                 m_subject_pos,
                                 context_size=args.context))
-                    subject_extract_csv.writerow([m_transcript_filepath,
+                    subject_extract_csv.writerow([extract_date,
+                                                  m_transcript_filepath,
                                                   show_info['show_date'],
                                                   show_info['show_id'],
                                                   show_info['show_name'],
@@ -196,7 +204,8 @@ if __name__ == '__main__':
                         context(m_transcript_words, m_keyword_pos,
                                 m_keyword_pos,
                                 context_size=args.context))
-                    keyword_extract_csv.writerow([m_transcript_filepath,
+                    keyword_extract_csv.writerow([extract_date,
+                                                  m_transcript_filepath,
                                                   show_info['show_date'],
                                                   show_info['show_id'],
                                                   show_info['show_name'],
@@ -208,19 +217,15 @@ if __name__ == '__main__':
                         context(m_transcript_words, min(m_subject_pos, m_keyword_pos),
                                 max(m_subject_pos, m_keyword_pos),
                                 context_size=args.context))
-                    cur_extract_csv = extract_csv
 
-                    if args.ask:
-                        res = input('{} ({} -> {}) [Yn] '.format(extract, m_subject, m_keyword))
-                        if res in ('n', 'N'):
-                            cur_extract_csv = neg_extract_csv
-
-                    cur_extract_csv.writerow([m_transcript_filepath,
-                                              show_info['show_date'],
-                                              show_info['show_id'],
-                                              show_info['show_name'],
-                                              m_subject,
-                                              subject_map[m_subject],
-                                              m_keyword,
-                                              keyword_map[m_keyword],
-                                              extract])
+                    extract_csv.writerow([extract_date,
+                                          m_transcript_filepath,
+                                          show_info['show_date'],
+                                          show_info['show_id'],
+                                          show_info['show_name'],
+                                          m_subject,
+                                          subject_map[m_subject],
+                                          m_keyword,
+                                          keyword_map[m_keyword],
+                                          '',
+                                          extract])

@@ -30,12 +30,14 @@ where:
 
 ## Output files
 
+Note that if `extracts.csv` already exists, all of the following files will be appended to.  If it does not exist,
+all of the following files will be overwritten.
+
 **`keyword_extracts.csv`** - All found instances of keywords
 
 **`subject_extracts.csv`** - All found instances of subjects
 
-**`pos_extracts.csv`** - Co-located pairs of keywords and subjects coded as relevant 
+**`extracts.csv`** - Co-located pairs of keywords and subjects
 
-**`neg_extracts.csv`** - Co-located pairs of keywords and subjects coded as *not* relevant
 
 
