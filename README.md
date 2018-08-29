@@ -15,7 +15,6 @@ optional arguments:
   --subjectfile SUBJECTFILE   subject list file (default = subjects.csv)
   --keywordfile KEYWORDFILE   keyword list file (default = keywords.csv)
   --normalizefile NORMALIZEFILE   normalize terms file (default = normalize_terms.csv)
-  --ask              Ask about each instance of co-location to manually code as relevant or not (default = code all as relevant)
 ```
 
 Transcript files must be named using the following pattern:
