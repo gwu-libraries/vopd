@@ -36,6 +36,20 @@ def tokenize(transcript_text):
     return word_tokenize(clean_transcript_text)
 
 
+def show_data(show_file_path):
+    show_file_name = os.path.split(show_file_path)[1]
+
+    show_info = {}
+    month = show_file_name[0:2]
+    day = show_file_name[3:5]
+    year = show_file_name[6:10]
+
+    show_info['show_date'] = month+'/'+day+'/'+year
+    show_info['show_id'] = show_file_name[11:14]
+    show_info['show_name'] = show_file_name[15:-4] # leave off .PDF
+
+    return show_info
+
 def window_iter(transcript_words, window_size):
     pos = 0
     while pos + window_size <= len(transcript_words):
@@ -142,7 +156,7 @@ if __name__ == '__main__':
         m_transcript_filepaths.append(args.transcript)
 
     # Start processing
-    headers = ['file', 'subject', 'subject_code', 'keyword', 'keyword_code', 'extract']
+    headers = ['file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'keyword', 'keyword_code', 'extract']
 
     with open('pos_extracts.csv', 'w') as extract_file, \
             open('neg_extracts.csv', 'w') as neg_extract_file, \
@@ -153,11 +167,13 @@ if __name__ == '__main__':
         neg_extract_csv = csv.writer(neg_extract_file)
         neg_extract_csv.writerow(headers)
         keyword_extract_csv = csv.writer(keyword_extract_file)
-        keyword_extract_csv.writerow(['file', 'keyword', 'keyword_code', 'extract'])
+        keyword_extract_csv.writerow(['file', 'show_date', 'show_id', 'show_name', 'keyword', 'keyword_code', 'extract'])
         subject_extract_csv = csv.writer(subject_extract_file)
-        subject_extract_csv.writerow(['file', 'subject', 'subject_code', 'extract'])
+        subject_extract_csv.writerow(['file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'extract'])
 
         for m_transcript_filepath in m_transcript_filepaths:
+            show_info = show_data(m_transcript_filepath)
+
             print('Processing {}'.format(m_transcript_filepath))
             m_transcript_text = extract_text(m_transcript_filepath)
             m_transcript_words = tokenize(m_transcript_text)
@@ -169,6 +185,9 @@ if __name__ == '__main__':
                                 m_subject_pos,
                                 context_size=args.context))
                     subject_extract_csv.writerow([m_transcript_filepath,
+                                                  show_info['show_date'],
+                                                  show_info['show_id'],
+                                                  show_info['show_name'],
                                                   m_subject,
                                                   subject_map[m_subject],
                                                   extract])
@@ -178,6 +197,9 @@ if __name__ == '__main__':
                                 m_keyword_pos,
                                 context_size=args.context))
                     keyword_extract_csv.writerow([m_transcript_filepath,
+                                                  show_info['show_date'],
+                                                  show_info['show_id'],
+                                                  show_info['show_name'],
                                                   m_keyword,
                                                   keyword_map[m_keyword],
                                                   extract])
@@ -194,6 +216,9 @@ if __name__ == '__main__':
                             cur_extract_csv = neg_extract_csv
 
                     cur_extract_csv.writerow([m_transcript_filepath,
+                                              show_info['show_date'],
+                                              show_info['show_id'],
+                                              show_info['show_name'],
                                               m_subject,
                                               subject_map[m_subject],
                                               m_keyword,

@@ -18,6 +18,15 @@ optional arguments:
   --ask              Ask about each instance of co-location to manually code as relevant or not (default = code all as relevant)
 ```
 
+Transcript files must be named using the following pattern:
+
+`MM_DD_YYYY_NNN_Name Of The Show.pdf`
+
+where:
+`MM_DD_YYYY` is the date of the show
+`NNN` is the show code/number
+(any separator character is okay - but positions of the values are important)
+
 
 ## Output files
 
