@@ -22,8 +22,8 @@ Transcript files must be named using the following pattern:
 `MM_DD_YYYY_NNN_Name Of The Show.pdf`
 
 where:
-`MM_DD_YYYY` is the date of the show
-`NNN` is the show code/number
+ - `MM_DD_YYYY` is the date of the show
+ - `NNN` is the show code/number
 (any separator character is okay - but positions of the values are important)
 
 
