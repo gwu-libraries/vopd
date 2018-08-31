@@ -108,6 +108,15 @@ def process_transcript_iter(transcript_words, window_size=10):
                 yield subject, start + len(window_words) - 1, keyword, start + keyword_pos
 
 
+# Check if the file has a newline as the last character; if not, add it
+def fix_newline(f):
+    f_length = f.tell()
+    f.seek(f_length-1, 0)
+    lastchar = f.read(1)
+    if lastchar != '\n':
+        f.write('\n')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--window', help='number of words that subject and keyword must be within (default = 10)', type=int,
@@ -160,7 +169,7 @@ if __name__ == '__main__':
 
     if os.path.exists('extracts.csv'):
         append_extracts = True
-        file_mode = 'a'
+        file_mode = 'a+'
     else:
         append_extracts = False
         file_mode = 'w'
@@ -168,6 +177,12 @@ if __name__ == '__main__':
     with open('extracts.csv', file_mode) as extract_file, \
             open('keyword_extracts.csv', file_mode) as keyword_extract_file, \
             open('subject_extracts.csv', file_mode) as subject_extract_file:
+        # If the file was previously saved using Excel, it will be lacking a final \n character.
+        # So, we need to check if it's missing; if so, add it so that appending starts on a new line.
+        if append_extracts:
+            fix_newline(extract_file)
+            fix_newline(keyword_extract_file)
+            fix_newline(subject_extract_file)
         extract_csv = csv.writer(extract_file)
         keyword_extract_csv = csv.writer(keyword_extract_file)
         subject_extract_csv = csv.writer(subject_extract_file)
@@ -229,3 +244,7 @@ if __name__ == '__main__':
                                           keyword_map[m_keyword],
                                           '',
                                           extract])
+        # Ensure that the last row has a newline
+        #extract_file.write('\n')
+        #keyword_extract_file.write('\n')
+        #subject_extract_file.write('\n')
