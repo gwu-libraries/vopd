@@ -72,7 +72,7 @@ def matching_word_list(words, word_list):
     return None, None
 
 
-def context(transcript_words, word_pos1, word_pos2, context_size=10):
+def context(transcript_words, word_pos1, word_pos2, context_size=20):
     context_start = max(word_pos1 - context_size, 0)
     context_end = min(word_pos2 + context_size, len(transcript_words))
     return transcript_words[context_start:context_end]
@@ -85,7 +85,7 @@ def process_transcript_iter(transcript_words, window_size=10):
         if subject_pos is not None:
             keyword_pos, keyword = matching_word_list(window_words, keywords)
             if keyword_pos is not None:
-                # A subject and keyword found
+                # A subject and keyword found, where the subject is to the left of the keyword
                 yield subject, start + subject_pos, keyword, start + keyword_pos
             else:
                 # Only a subject found
@@ -101,6 +101,7 @@ def process_transcript_iter(transcript_words, window_size=10):
     # Look backwards
     for start, end, window_words in back_window_iter(transcript_words, window_size):
         subject_pos, subject = matching_word_list(window_words[len(window_words) - 1:], subjects)
+        # if the right-most word in the window is a subject term
         if subject_pos is not None:
             keyword_pos, keyword = matching_word_list(window_words, keywords)
             if keyword_pos is not None:
@@ -174,22 +175,14 @@ if __name__ == '__main__':
         append_extracts = False
         file_mode = 'w'
 
-    with open('extracts.csv', file_mode) as extract_file, \
-            open('keyword_extracts.csv', file_mode) as keyword_extract_file, \
-            open('subject_extracts.csv', file_mode) as subject_extract_file:
+    with open('extracts.csv', file_mode) as extract_file:
         # If the file was previously saved using Excel, it will be lacking a final \n character.
         # So, we need to check if it's missing; if so, add it so that appending starts on a new line.
         if append_extracts:
             fix_newline(extract_file)
-            fix_newline(keyword_extract_file)
-            fix_newline(subject_extract_file)
         extract_csv = csv.writer(extract_file)
-        keyword_extract_csv = csv.writer(keyword_extract_file)
-        subject_extract_csv = csv.writer(subject_extract_file)
         if not append_extracts:
             extract_csv.writerow(headers)
-            keyword_extract_csv.writerow(['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'keyword', 'keyword_code', 'extract'])
-            subject_extract_csv.writerow(['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'extract'])
 
         for m_transcript_filepath in m_transcript_filepaths:
             show_info = show_data(m_transcript_filepath)
@@ -206,27 +199,34 @@ if __name__ == '__main__':
                         context(m_transcript_words, m_subject_pos,
                                 m_subject_pos,
                                 context_size=args.context))
-                    subject_extract_csv.writerow([extract_date,
-                                                  m_transcript_filepath,
-                                                  show_info['show_date'],
-                                                  show_info['show_id'],
-                                                  show_info['show_name'],
-                                                  m_subject,
-                                                  subject_map[m_subject],
-                                                  extract])
+                    extract_csv.writerow([extract_date,
+                                          m_transcript_filepath,
+                                          show_info['show_date'],
+                                          show_info['show_id'],
+                                          show_info['show_name'],
+                                          m_subject,
+                                          subject_map[m_subject],
+                                          '',
+                                          '',
+                                          '',
+                                          extract])
                 elif m_subject is None:
                     extract = ' '.join(
                         context(m_transcript_words, m_keyword_pos,
                                 m_keyword_pos,
                                 context_size=args.context))
-                    keyword_extract_csv.writerow([extract_date,
-                                                  m_transcript_filepath,
-                                                  show_info['show_date'],
-                                                  show_info['show_id'],
-                                                  show_info['show_name'],
-                                                  m_keyword,
-                                                  keyword_map[m_keyword],
-                                                  extract])
+
+                    extract_csv.writerow([extract_date,
+                                          m_transcript_filepath,
+                                          show_info['show_date'],
+                                          show_info['show_id'],
+                                          show_info['show_name'],
+                                          '',
+                                          '',
+                                          m_keyword,
+                                          keyword_map[m_keyword],
+                                          '',
+                                          extract])
                 else:
                     extract = ' '.join(
                         context(m_transcript_words, min(m_subject_pos, m_keyword_pos),
