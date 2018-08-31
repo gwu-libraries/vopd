@@ -52,9 +52,9 @@ def show_data(show_file_path):
     return show_info
 
 def window_iter(transcript_words, window_size):
-    pos = 0
-    while pos + window_size <= len(transcript_words):
-        yield pos, pos + window_size, transcript_words[pos:pos + window_size]
+    pos = 2 - window_size
+    while pos + window_size <= len(transcript_words) + window_size - 1:
+        yield pos, pos + window_size, transcript_words[max(pos,0):min(pos + window_size, len(transcript_words))]
         pos += 1
 
 
@@ -97,16 +97,13 @@ def process_transcript_iter(transcript_words, window_size=10):
                 subject_pos, subject = matching_word_list(window_words, subjects)
                 if subject_pos is None:
                     yield None, None, keyword, start + keyword_pos
-
-    # Look backwards
-    for start, end, window_words in back_window_iter(transcript_words, window_size):
-        subject_pos, subject = matching_word_list(window_words[len(window_words) - 1:], subjects)
-        # if the right-most word in the window is a subject term
+        # Now for a subject and keyword, where the subject is at the right-most end of the window (so the keyword is to the left)
+        subject_pos, subject = matching_word_list(window_words[-1:], subjects)
         if subject_pos is not None:
             keyword_pos, keyword = matching_word_list(window_words, keywords)
             if keyword_pos is not None:
-                # A subject and keyword found
-                yield subject, start + len(window_words) - 1, keyword, start + keyword_pos
+                # A subject and keyword found, where the subject is to the right of the keyword
+                yield subject, start + subject_pos, keyword, start + keyword_pos
 
 
 # Check if the file has a newline as the last character; if not, add it
@@ -130,6 +127,8 @@ if __name__ == '__main__':
                         default='keywords.csv')
     parser.add_argument('--normalizefile', help='normalize terms file (default = normalize_terms.csv)', type=argparse.FileType('r'),
                         default='normalize_terms.csv')
+    parser.add_argument('--suppress-lone-subjects', action='store_true', help='do not write rows for subjects found but not co-located with keywords')
+    parser.add_argument('--suppress-lone-keywords', action='store_true', help='do not write rows for keywords found but not co-located with subjects')
     parser.add_argument('transcript', help='filepath to transcript pdf or directory')
 
     args = parser.parse_args()
@@ -195,38 +194,40 @@ if __name__ == '__main__':
                 extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
 
                 if m_keyword is None:
-                    extract = ' '.join(
-                        context(m_transcript_words, m_subject_pos,
-                                m_subject_pos,
-                                context_size=args.context))
-                    extract_csv.writerow([extract_date,
-                                          m_transcript_filepath,
-                                          show_info['show_date'],
-                                          show_info['show_id'],
-                                          show_info['show_name'],
-                                          m_subject,
-                                          subject_map[m_subject],
-                                          '',
-                                          '',
-                                          '',
-                                          extract])
+                    if not args.suppress_lone_subjects:
+                        extract = ' '.join(
+                            context(m_transcript_words, m_subject_pos,
+                                    m_subject_pos,
+                                    context_size=args.context))
+                        extract_csv.writerow([extract_date,
+                                              m_transcript_filepath,
+                                              show_info['show_date'],
+                                              show_info['show_id'],
+                                              show_info['show_name'],
+                                              m_subject,
+                                              subject_map[m_subject],
+                                              '',
+                                              '',
+                                              '',
+                                              extract])
                 elif m_subject is None:
-                    extract = ' '.join(
-                        context(m_transcript_words, m_keyword_pos,
-                                m_keyword_pos,
-                                context_size=args.context))
+                    if not args.suppress_lone_keywords:
+                        extract = ' '.join(
+                            context(m_transcript_words, m_keyword_pos,
+                                    m_keyword_pos,
+                                    context_size=args.context))
 
-                    extract_csv.writerow([extract_date,
-                                          m_transcript_filepath,
-                                          show_info['show_date'],
-                                          show_info['show_id'],
-                                          show_info['show_name'],
-                                          '',
-                                          '',
-                                          m_keyword,
-                                          keyword_map[m_keyword],
-                                          '',
-                                          extract])
+                        extract_csv.writerow([extract_date,
+                                              m_transcript_filepath,
+                                              show_info['show_date'],
+                                              show_info['show_id'],
+                                              show_info['show_name'],
+                                              '',
+                                              '',
+                                              m_keyword,
+                                              keyword_map[m_keyword],
+                                              '',
+                                              extract])
                 else:
                     extract = ' '.join(
                         context(m_transcript_words, min(m_subject_pos, m_keyword_pos),
