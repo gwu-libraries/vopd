@@ -15,6 +15,9 @@ optional arguments:
   --subjectfile SUBJECTFILE   subject list file (default = subjects.csv)
   --keywordfile KEYWORDFILE   keyword list file (default = keywords.csv)
   --normalizefile NORMALIZEFILE   normalize terms file (default = normalize_terms.csv)
+  --suppress-lone-subjects    do not write rows for subjects found but not co-located with keywords
+  --suppress-lone-keywords    do not write rows for keywords found but not co-located with subjects
+
 ```
 
 Transcript files must be named using the following pattern:
@@ -29,14 +32,12 @@ where:
 
 ## Output files
 
-Note that if `extracts.csv` already exists, all of the following files will be appended to.  If it does not exist,
-all of the following files will be overwritten.
+**`extracts.csv`** - All found keywords and subjects, as follows:
+- If a subject and keyword are found within the "window", the row will contain both.
+- If a subject is found with no keyword within the "window", the row will contain only the keyword.
+- If a keyword is found with no subject within the "window", the row will contain only the keyword.
 
-**`keyword_extracts.csv`** - All found instances of keywords
-
-**`subject_extracts.csv`** - All found instances of subjects
-
-**`extracts.csv`** - Co-located pairs of keywords and subjects
+Note that if `extracts.csv` already exists, it will be appended to.  If you wish to overwrite, simply delete or rename `extracts.csv`.
 
 
 
