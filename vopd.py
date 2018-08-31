@@ -244,7 +244,3 @@ if __name__ == '__main__':
                                           keyword_map[m_keyword],
                                           '',
                                           extract])
-        # Ensure that the last row has a newline
-        #extract_file.write('\n')
-        #keyword_extract_file.write('\n')
-        #subject_extract_file.write('\n')
