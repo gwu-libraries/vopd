@@ -14,7 +14,7 @@ nltk.download('punkt')
 # global variables
 subject_map = {}
 keyword_map = {}
-keyword_group = {}
+keyword_id = {}
 subjects = []
 keywords = []
 normalize_terms = {}
@@ -146,7 +146,7 @@ if __name__ == '__main__':
         for row in keywords_csv:
             keywords += [row[0]]
             keyword_map[row[0]] = row[1]
-            keyword_group[row[0]] = row[2]
+            keyword_id[row[0]] = row[2]
 
     with args.normalizefile as normalize_terms_file:
         normalize_terms_csv = csv.reader(normalize_terms_file)
@@ -167,7 +167,7 @@ if __name__ == '__main__':
         m_transcript_filepaths.append(args.transcript)
 
     # Start processing
-    headers = ['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_group', 'relevant?', 'extract']
+    headers = ['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'extract']
 
     if os.path.exists('extracts.csv'):
         append_extracts = True
@@ -228,7 +228,7 @@ if __name__ == '__main__':
                                               '',
                                               m_keyword,
                                               keyword_map[m_keyword],
-                                              keyword_group[m_keyword],
+                                              keyword_id[m_keyword],
                                               '',
                                               extract])
                 else:
@@ -246,6 +246,6 @@ if __name__ == '__main__':
                                           subject_map[m_subject],
                                           m_keyword,
                                           keyword_map[m_keyword],
-                                          keyword_group[m_keyword],
+                                          keyword_id[m_keyword],
                                           '',
                                           extract])
