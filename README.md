@@ -1,5 +1,5 @@
 # vopd
-Code supporting the Voices of Polarization and Demoization project
+Code supporting the "Monitoring Hate Speech in the US Media" project, of Prof. Babak Bahador's group in the GW School of Media and Public Affairs.
 
 ## Running the program
 
@@ -39,5 +39,14 @@ where:
 
 Note that if `extracts.csv` already exists, it will be appended to.  If you wish to overwrite, simply delete or rename `extracts.csv`.
 
+
+## recycle_keywords.py utility
+
+The `recycle_keywords.py` utility takes:
+- A coding file (default `coding.csv`)
+- A keywords file (default `keywords.csv`)
+- A normalize_terms file (default `normalize_terms.csv`)
+
+It scans through the coding file, looking for keyword severity scores assigned by the human coder, as well as looking for new keywords added by the human coder.  It then updates the scores of existing keywords (using the mode of human-assigned severity scores), and adds new keywords, to the keywords file.
 
 
