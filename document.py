@@ -88,9 +88,9 @@ class SFMExtractDocumentSet(DocumentSet):
         data = ws.values
 
         # Create a DataFrame using the first row as variable/column names
-        cols = next(data)[1:]
+        cols = next(data)
         data = list(data)
-        data = (islice(r, 1, None) for r in data)
+        data = (islice(r, 0, None) for r in data)
         df = DataFrame(data, columns=cols)
         self.df_iterrows = df.iterrows()
 
@@ -101,7 +101,18 @@ class SFMExtractDocumentSet(DocumentSet):
 
         index, line = self.df_iterrows.__next__()
         text = line['text']
-        md = {} # TODO: pull from relevant columns in line
+        md = self._tweet_data(line)
         doc = Document(text=text, metadata=md)
         return doc
+
+    def _tweet_data(self, tweet):
+        tweet_info = {}
+        tweet_info['id'] = tweet['id']
+        tweet_info['tweet_url'] = tweet['tweet_url']
+        created_at = tweet['parsed_created_at']
+        tweet_info['created_date'] = created_at[5:7]+'/'+created_at[8:10]+'/'+created_at[0:5]
+        tweet_info['user_screen_name'] = tweet['user_screen_name']
+        tweet_info['tweet_type'] = tweet['tweet_type']
+
+        return tweet_info
 
