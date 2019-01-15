@@ -1,13 +1,10 @@
 import argparse
-from pdfminer.high_level import extract_text_to_fp
 import datetime
-import io
-import os
-import sys
 import csv
 import re
 from nltk.tokenize import word_tokenize
 import nltk
+from document import *
 
 nltk.download('punkt')
 
@@ -18,13 +15,6 @@ keyword_id = {}
 subjects = []
 keywords = []
 normalize_terms = {}
-
-
-def extract_text(pdf_filepath):
-    with open(pdf_filepath, "rb") as fp:
-        text_fp = io.StringIO()
-        extract_text_to_fp(fp, text_fp)
-        return text_fp.getvalue()
 
 
 def tokenize(transcript_text):
@@ -38,20 +28,6 @@ def tokenize(transcript_text):
     return word_tokenize(clean_transcript_text)
 
 
-def show_data(show_file_path):
-    show_file_name = os.path.split(show_file_path)[1]
-
-    show_info = {}
-    month = show_file_name[0:2]
-    day = show_file_name[3:5]
-    year = show_file_name[6:10]
-
-    show_info['show_date'] = month+'/'+day+'/'+year
-    show_info['show_id'] = show_file_name[11:14]
-    show_info['show_name'] = show_file_name[15:-4] # leave off .PDF
-
-    return show_info
-
 # Return windows that start with the first two words, increasing to size window_size,
 # then stopping after the right-most word is the last word in the document
 def window_iter(document_words, window_size):
@@ -61,13 +37,6 @@ def window_iter(document_words, window_size):
     for right_index in range(1,len(document_words)):
         left_index = max(0, right_index - window_size)
         yield left_index, right_index, document_words[left_index:right_index+1]
-
-
-def back_window_iter(transcript_words, window_size):
-    pos = len(transcript_words)
-    while pos - window_size >= 0:
-        yield pos - window_size, pos, transcript_words[pos - window_size:pos]
-        pos -= 1
 
 
 def matching_word_list(words, word_list):
@@ -122,8 +91,6 @@ if __name__ == '__main__':
                         default='keywords.csv')
     parser.add_argument('--normalizefile', help='normalize terms file (default = normalize_terms.csv)', type=argparse.FileType('r'),
                         default='normalize_terms.csv')
-    parser.add_argument('--suppress-lone-subjects', action='store_true', help='do not write rows for subjects found but not co-located with keywords')
-    parser.add_argument('--suppress-lone-keywords', action='store_true', help='do not write rows for keywords found but not co-located with subjects')
     parser.add_argument('transcript', help='filepath to transcript pdf or directory')
 
     args = parser.parse_args()
@@ -147,22 +114,12 @@ if __name__ == '__main__':
         for row in normalize_terms_csv:
             normalize_terms[row[0]] = row[1]
 
-    # Compose m_transcript_filepaths list
-    if not os.path.exists(args.transcript):
-        print('{} does not exist'.format(args.transcript))
-        sys.exit(1)
-    m_transcript_filepaths = []
-    if os.path.isdir(args.transcript):
-        for filename in os.listdir(args.transcript):
-            filepath = os.path.join(args.transcript, filename)
-            if os.path.isfile(filepath) and filename.lower().endswith('.pdf'):
-                m_transcript_filepaths.append(filepath)
-    else:
-        m_transcript_filepaths.append(args.transcript)
+    pdfdocset = PDFTranscriptDocumentSet(args.transcript)
 
     # Start processing
     headers = ['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'extract']
 
+    # If extracts.csv exists, append to it rather than overwriting it.
     if os.path.exists('extracts.csv'):
         append_extracts = True
         file_mode = 'a+'
@@ -179,11 +136,12 @@ if __name__ == '__main__':
         if not append_extracts:
             extract_csv.writerow(headers)
 
-        for m_transcript_filepath in m_transcript_filepaths:
-            show_info = show_data(m_transcript_filepath)
+        for pdfdoc in pdfdocset:
+            show_info = pdfdoc.metadata
 
+            m_transcript_filepath = show_info['show_file_path']
             print('Processing {}'.format(m_transcript_filepath))
-            m_transcript_text = extract_text(m_transcript_filepath)
+            m_transcript_text = pdfdoc.text
             m_transcript_words = tokenize(m_transcript_text)
             for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_transcript_iter(m_transcript_words,
                                                                                               window_size=args.window):
