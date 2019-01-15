@@ -101,5 +101,7 @@ class SFMExtractDocumentSet(DocumentSet):
 
         index, line = self.df_iterrows.__next__()
         text = line['text']
+        md = {} # TODO: pull from relevant columns in line
+        doc = Document(text=text, metadata=md)
+        return doc
 
-        return Document(text)
