@@ -32,10 +32,8 @@ where:
 
 ## Output files
 
-**`extracts.csv`** - All found keywords and subjects, as follows:
-- If a subject and keyword are found within the "window", the row will contain both.
-- If a subject is found with no keyword within the "window", the row will contain only the keyword.
-- If a keyword is found with no subject within the "window", the row will contain only the keyword.
+**`extracts.csv`** - All instances of a keyword and a subject found within "n" number
+of words of each other, where "n" is the configured window size.
 
 Note that if `extracts.csv` already exists, it will be appended to.  If you wish to overwrite, simply delete or rename `extracts.csv`.
 

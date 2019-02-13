@@ -52,11 +52,15 @@ def show_data(show_file_path):
 
     return show_info
 
-def window_iter(transcript_words, window_size):
-    pos = 2 - window_size
-    while pos + window_size <= len(transcript_words) + window_size - 1:
-        yield pos, pos + window_size, transcript_words[max(pos,0):min(pos + window_size, len(transcript_words))]
-        pos += 1
+# Return windows that start with the first two words, increasing to size window_size,
+# then stopping after the right-most word is the last word in the document
+def window_iter(document_words, window_size):
+    # right_index is the index of the right-most word
+    # (where the first word's index is 0)
+    # This will go from 1 to len(document_words)-1, inclusive
+    for right_index in range(1,len(document_words)):
+        left_index = max(0, right_index - window_size)
+        yield left_index, right_index, document_words[left_index:right_index+1]
 
 
 def back_window_iter(transcript_words, window_size):
@@ -79,31 +83,21 @@ def context(transcript_words, word_pos1, word_pos2, context_size=20):
     return transcript_words[context_start:context_end]
 
 
-def process_transcript_iter(transcript_words, window_size=10):
-    # Look forwards
-    for start, end, window_words in window_iter(transcript_words, window_size):
-        subject_pos, subject = matching_word_list(window_words[0:1], subjects)
+def process_transcript_iter(document_words, window_size=10):
+    for start, end, window_words in window_iter(document_words, window_size):
+        # Compare with the right-most word as the potential subject; look for keywords
+        subject_pos, subject = matching_word_list([window_words[-1]], subjects)
         if subject_pos is not None:
-            keyword_pos, keyword = matching_word_list(window_words, keywords)
+            keyword_pos, keyword = matching_word_list(window_words[0:-1], keywords)
             if keyword_pos is not None:
                 # A subject and keyword found, where the subject is to the left of the keyword
                 yield subject, start + subject_pos, keyword, start + keyword_pos
-            else:
-                # Only a subject found
-                yield subject, start + subject_pos, None, None
-        else:
-            # Look for keyword without a subject
-            keyword_pos, keyword = matching_word_list(window_words[0:1], keywords)
-            if keyword_pos is not None:
-                subject_pos, subject = matching_word_list(window_words, subjects)
-                if subject_pos is None:
-                    yield None, None, keyword, start + keyword_pos
-        # Now for a subject and keyword, where the subject is at the right-most end of the window (so the keyword is to the left)
-        subject_pos, subject = matching_word_list(window_words[-1:], subjects)
-        if subject_pos is not None:
-            keyword_pos, keyword = matching_word_list(window_words, keywords)
-            if keyword_pos is not None:
-                # A subject and keyword found, where the subject is to the right of the keyword
+        # Compare with the right-most word as the potential keyword; look for subjects
+        keyword_pos, keyword = matching_word_list([window_words[-1]], keywords)
+        if keyword_pos is not None:
+            subject_pos, subject = matching_word_list(window_words[0:-1], subjects)
+            if subject_pos is not None:
+                # A subject and keyword found, where the keyword is to the left of the subject
                 yield subject, start + subject_pos, keyword, start + keyword_pos
 
 
