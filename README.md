@@ -15,9 +15,6 @@ optional arguments:
   --subjectfile SUBJECTFILE   subject list file (default = subjects.csv)
   --keywordfile KEYWORDFILE   keyword list file (default = keywords.csv)
   --normalizefile NORMALIZEFILE   normalize terms file (default = normalize_terms.csv)
-  --suppress-lone-subjects    do not write rows for subjects found but not co-located with keywords
-  --suppress-lone-keywords    do not write rows for keywords found but not co-located with subjects
-
 ```
 
 Transcript files must be named using the following pattern:
