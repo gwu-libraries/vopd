@@ -17,15 +17,15 @@ keywords = []
 normalize_terms = {}
 
 
-def tokenize(transcript_text):
+def tokenize(document_text):
     # Convert to lower case
-    clean_transcript_text = transcript_text.lower()
+    clean_document_text = document_text.lower()
     # Split words by periods
-    clean_transcript_text = re.sub(r'([a-z])\.([a-z])', r'\1. \2', clean_transcript_text)
+    clean_document_text = re.sub(r'([a-z])\.([a-z])', r'\1. \2', clean_document_text)
 
     for term, normalized_term in normalize_terms.items():
-        clean_transcript_text = clean_transcript_text.replace(term, normalized_term)
-    return word_tokenize(clean_transcript_text)
+        clean_document_text = clean_document_text.replace(term, normalized_term)
+    return word_tokenize(clean_document_text)
 
 
 # Return windows that start with the first two words, increasing to size window_size,
@@ -52,7 +52,7 @@ def context(transcript_words, word_pos1, word_pos2, context_size=20):
     return transcript_words[context_start:context_end]
 
 
-def process_transcript_iter(document_words, window_size=10):
+def process_document_iter(document_words, window_size=10):
     for start, end, window_words in window_iter(document_words, window_size):
         # Compare with the right-most word as the potential subject; look for keywords
         subject_pos, subject = matching_word_list([window_words[-1]], subjects)
@@ -143,8 +143,8 @@ if __name__ == '__main__':
             print('Processing {}'.format(m_transcript_filepath))
             m_transcript_text = pdfdoc.text
             m_transcript_words = tokenize(m_transcript_text)
-            for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_transcript_iter(m_transcript_words,
-                                                                                              window_size=args.window):
+            for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_document_iter(m_transcript_words,
+                                                                                            window_size=args.window):
                 extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
 
                 if m_keyword is None:
