@@ -6,7 +6,7 @@ Code supporting the "Monitoring Hate Speech in the US Media" project, of Prof. B
 usage: `python vopd.py [-h] [--window WINDOW] [--context CONTEXT] [--ask] transcript`
 
 ```positional arguments:
-  transcript         filepath to transcript pdf or directory
+  transcript         filepath to transcript pdf or directory, or (where `mode==tweets`) path to SFM extract Excel file
 
 optional arguments:
   -h, --help         show this help message and exit
@@ -15,9 +15,10 @@ optional arguments:
   --subjectfile SUBJECTFILE   subject list file (default = subjects.csv)
   --keywordfile KEYWORDFILE   keyword list file (default = keywords.csv)
   --normalizefile NORMALIZEFILE   normalize terms file (default = normalize_terms.csv)
+  --mode MODE        processing mode, either `pdf` or `tweets` (default = pdf)
 ```
 
-Transcript files must be named using the following pattern:
+PDF Transcript files must be named using the following pattern:
 
 `MM_DD_YYYY_NNN_Name Of The Show.pdf`
 
@@ -29,16 +30,16 @@ where:
 
 ## Output files
 
-**`extracts.csv`** - All instances of a keyword and a subject found within "n" number
+**`extracts-[pdf OR tweets].csv`** - All instances of a keyword and a subject found within "n" number
 of words of each other, where "n" is the configured window size.
 
-Note that if `extracts.csv` already exists, it will be appended to.  If you wish to overwrite, simply delete or rename `extracts.csv`.
+Note that if `extracts-[pdf OR tweets].csv` already exists, it will be appended to.  If you wish to overwrite, simply delete or rename it.
 
 
 ## recycle_keywords.py utility
 
 The `recycle_keywords.py` utility takes:
-- A coding file (default `coding.csv`)
+- A coding file (default `coding.csv`)  **currently only works for PDF extracts
 - A keywords file (default `keywords.csv`)
 - A normalize_terms file (default `normalize_terms.csv`)
 

@@ -1,13 +1,10 @@
 import argparse
-from pdfminer.high_level import extract_text_to_fp
 import datetime
-import io
-import os
-import sys
 import csv
 import re
 from nltk.tokenize import word_tokenize
 import nltk
+from document import *
 
 nltk.download('punkt')
 
@@ -20,37 +17,16 @@ keywords = []
 normalize_terms = {}
 
 
-def extract_text(pdf_filepath):
-    with open(pdf_filepath, "rb") as fp:
-        text_fp = io.StringIO()
-        extract_text_to_fp(fp, text_fp)
-        return text_fp.getvalue()
-
-
-def tokenize(transcript_text):
+def tokenize(document_text):
     # Convert to lower case
-    clean_transcript_text = transcript_text.lower()
+    clean_document_text = document_text.lower()
     # Split words by periods
-    clean_transcript_text = re.sub(r'([a-z])\.([a-z])', r'\1. \2', clean_transcript_text)
+    clean_document_text = re.sub(r'([a-z])\.([a-z])', r'\1. \2', clean_document_text)
 
     for term, normalized_term in normalize_terms.items():
-        clean_transcript_text = clean_transcript_text.replace(term, normalized_term)
-    return word_tokenize(clean_transcript_text)
+        clean_document_text = clean_document_text.replace(term, normalized_term)
+    return word_tokenize(clean_document_text)
 
-
-def show_data(show_file_path):
-    show_file_name = os.path.split(show_file_path)[1]
-
-    show_info = {}
-    month = show_file_name[0:2]
-    day = show_file_name[3:5]
-    year = show_file_name[6:10]
-
-    show_info['show_date'] = month+'/'+day+'/'+year
-    show_info['show_id'] = show_file_name[11:14]
-    show_info['show_name'] = show_file_name[15:-4] # leave off .PDF
-
-    return show_info
 
 # Return windows that start with the first two words, increasing to size window_size,
 # then stopping after the right-most word is the last word in the document
@@ -61,13 +37,6 @@ def window_iter(document_words, window_size):
     for right_index in range(1,len(document_words)):
         left_index = max(0, right_index - window_size)
         yield left_index, right_index, document_words[left_index:right_index+1]
-
-
-def back_window_iter(transcript_words, window_size):
-    pos = len(transcript_words)
-    while pos - window_size >= 0:
-        yield pos - window_size, pos, transcript_words[pos - window_size:pos]
-        pos -= 1
 
 
 def matching_word_list(words, word_list):
@@ -83,7 +52,7 @@ def context(transcript_words, word_pos1, word_pos2, context_size=20):
     return transcript_words[context_start:context_end]
 
 
-def process_transcript_iter(document_words, window_size=10):
+def process_document_iter(document_words, window_size=10):
     for start, end, window_words in window_iter(document_words, window_size):
         # Compare with the right-most word as the potential subject; look for keywords
         subject_pos, subject = matching_word_list([window_words[-1]], subjects)
@@ -122,9 +91,9 @@ if __name__ == '__main__':
                         default='keywords.csv')
     parser.add_argument('--normalizefile', help='normalize terms file (default = normalize_terms.csv)', type=argparse.FileType('r'),
                         default='normalize_terms.csv')
-    parser.add_argument('--suppress-lone-subjects', action='store_true', help='do not write rows for subjects found but not co-located with keywords')
-    parser.add_argument('--suppress-lone-keywords', action='store_true', help='do not write rows for keywords found but not co-located with subjects')
-    parser.add_argument('transcript', help='filepath to transcript pdf or directory')
+    parser.add_argument('--mode', help='Mode: pdf or tweets', type=str,
+                        default='pdf')
+    parser.add_argument('transcript', help='filepath to transcript pdf or directory, or to SFM extract Excel file')
 
     args = parser.parse_args()
 
@@ -147,85 +116,46 @@ if __name__ == '__main__':
         for row in normalize_terms_csv:
             normalize_terms[row[0]] = row[1]
 
-    # Compose m_transcript_filepaths list
-    if not os.path.exists(args.transcript):
-        print('{} does not exist'.format(args.transcript))
-        sys.exit(1)
-    m_transcript_filepaths = []
-    if os.path.isdir(args.transcript):
-        for filename in os.listdir(args.transcript):
-            filepath = os.path.join(args.transcript, filename)
-            if os.path.isfile(filepath) and filename.lower().endswith('.pdf'):
-                m_transcript_filepaths.append(filepath)
-    else:
-        m_transcript_filepaths.append(args.transcript)
+    pdfdocset = None
+    headers = []
+    if args.mode == 'pdf':
+        pdfdocset = PDFTranscriptDocumentSet(args.transcript)
+        headers = ['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'extract']
+        extractfilename = 'extracts-pdf.csv'
+    if args.mode == 'tweets':
+        tweetdocset = SFMExtractDocumentSet(args.transcript)
+        headers = ['extract_date', 'tweet_id', 'created_date', 'user_screen_name', 'tweet_url', 'tweet_type', 'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'text']
+        extractfilename = 'extracts-tweets.csv'
 
-    # Start processing
-    headers = ['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'extract']
-
-    if os.path.exists('extracts.csv'):
+    # If extracts.csv exists, append to it rather than overwriting it.
+    if os.path.exists(extractfilename):
         append_extracts = True
         file_mode = 'a+'
     else:
         append_extracts = False
         file_mode = 'w'
 
-    with open('extracts.csv', file_mode) as extract_file:
-        # If the file was previously saved using Excel, it will be lacking a final \n character.
-        # So, we need to check if it's missing; if so, add it so that appending starts on a new line.
-        if append_extracts:
-            fix_newline(extract_file)
-        extract_csv = csv.writer(extract_file)
-        if not append_extracts:
-            extract_csv.writerow(headers)
+    if args.mode == 'pdf':
+        with open('extracts-pdf.csv', file_mode) as extract_file:
+            # If the file was previously saved using Excel, it will be lacking a final \n character.
+            # So, we need to check if it's missing; if so, add it so that appending starts on a new line.
+            if append_extracts:
+                fix_newline(extract_file)
+            extract_csv = csv.writer(extract_file)
+            if not append_extracts:
+                extract_csv.writerow(headers)
 
-        for m_transcript_filepath in m_transcript_filepaths:
-            show_info = show_data(m_transcript_filepath)
+            for pdfdoc in pdfdocset:
+                show_info = pdfdoc.metadata
 
-            print('Processing {}'.format(m_transcript_filepath))
-            m_transcript_text = extract_text(m_transcript_filepath)
-            m_transcript_words = tokenize(m_transcript_text)
-            for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_transcript_iter(m_transcript_words,
-                                                                                              window_size=args.window):
-                extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
+                m_transcript_filepath = show_info['show_file_path']
+                print('Processing {}'.format(m_transcript_filepath))
+                m_transcript_text = pdfdoc.text
+                m_transcript_words = tokenize(m_transcript_text)
+                for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_document_iter(m_transcript_words,
+                                                                                                window_size=args.window):
+                    extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
 
-                if m_keyword is None:
-                    if not args.suppress_lone_subjects:
-                        extract = ' '.join(
-                            context(m_transcript_words, m_subject_pos,
-                                    m_subject_pos,
-                                    context_size=args.context))
-                        extract_csv.writerow([extract_date,
-                                              m_transcript_filepath,
-                                              show_info['show_date'],
-                                              show_info['show_id'],
-                                              show_info['show_name'],
-                                              m_subject,
-                                              subject_map[m_subject],
-                                              '',
-                                              '',
-                                              '',
-                                              extract])
-                elif m_subject is None:
-                    if not args.suppress_lone_keywords:
-                        extract = ' '.join(
-                            context(m_transcript_words, m_keyword_pos,
-                                    m_keyword_pos,
-                                    context_size=args.context))
-
-                        extract_csv.writerow([extract_date,
-                                              m_transcript_filepath,
-                                              show_info['show_date'],
-                                              show_info['show_id'],
-                                              show_info['show_name'],
-                                              '',
-                                              '',
-                                              m_keyword,
-                                              keyword_map[m_keyword],
-                                              keyword_id[m_keyword],
-                                              '',
-                                              extract])
-                else:
                     extract = ' '.join(
                         context(m_transcript_words, min(m_subject_pos, m_keyword_pos),
                                 max(m_subject_pos, m_keyword_pos),
@@ -243,3 +173,43 @@ if __name__ == '__main__':
                                           keyword_id[m_keyword],
                                           '',
                                           extract])
+    if args.mode == 'tweets':
+        with open('extracts-tweets.csv', file_mode) as extract_file:
+            # If the file was previously saved using Excel, it will be lacking a final \n character.
+            # So, we need to check if it's missing; if so, add it so that appending starts on a new line.
+            if append_extracts:
+                fix_newline(extract_file)
+            extract_csv = csv.writer(extract_file)
+            if not append_extracts:
+                extract_csv.writerow(headers)
+
+            for tweet in tweetdocset:
+                tweet_info = tweet.metadata
+
+                #m_tweet_account = tweet_info['user_screen_name']
+                # print('Processing {}'.format(m_transcript_filepath))
+                m_transcript_text = tweet.text
+                m_transcript_words = tokenize(m_transcript_text)
+                for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_document_iter(m_transcript_words,
+                                                                                                window_size=args.window):
+                    extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
+
+                    extract = ' '.join(
+                        context(m_transcript_words, min(m_subject_pos, m_keyword_pos),
+                                max(m_subject_pos, m_keyword_pos),
+                                context_size=args.context))
+
+                    extract_csv.writerow([extract_date,
+                                          tweet_info['id'],
+                                          tweet_info['created_date'],
+                                          tweet_info['user_screen_name'],
+                                          tweet_info['tweet_url'],
+                                          tweet_info['tweet_type'],
+                                          m_subject,
+                                          subject_map[m_subject],
+                                          m_keyword,
+                                          keyword_map[m_keyword],
+                                          keyword_id[m_keyword],
+                                          '',
+                                          extract])
+
