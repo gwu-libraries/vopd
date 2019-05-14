@@ -1,11 +1,11 @@
 import argparse
-import datetime
 import csv
+import datetime
+from document import PDFTranscriptDocumentSet, SFMExtractDocumentSet
 import re
+
 from nltk.tokenize import word_tokenize
 import nltk
-from document import *
-
 nltk.download('punkt')
 
 # global variables
