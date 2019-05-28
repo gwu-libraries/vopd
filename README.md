@@ -3,7 +3,7 @@ Code supporting the "Monitoring Hate Speech in the US Media" project, of Prof. B
 
 ## Running the program
 
-usage: `python vopd.py [-h] [--window WINDOW] [--context CONTEXT] [--ask] transcript`
+usage: `python vopd.py [-h] [--window WINDOW] [--context CONTEXT] [--subjectfile SUBJECTFILE] [--keywordfile KEYWORDFILE] [---normalizefile NORMALIZEFILE] [--mode MODE] transcript`
 
 ```positional arguments:
   transcript         filepath to transcript pdf or directory, or (where `mode==tweets`) path to SFM extract Excel file
