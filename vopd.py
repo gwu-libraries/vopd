@@ -2,6 +2,7 @@ import argparse
 import csv
 import datetime
 from document import PDFTranscriptDocumentSet, SFMExtractDocumentSet
+import os
 import re
 
 from nltk.tokenize import word_tokenize
