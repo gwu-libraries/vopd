@@ -1,6 +1,10 @@
 # vopd
 Code supporting the "Monitoring Hate Speech in the US Media" project, of Prof. Babak Bahador's group in the GW School of Media and Public Affairs.
 
+## Installation
+
+Note that there is a `requirements.txt` file, so running this program requires a Python environment with the libraries in `requirements.txt` installed.  For those new to setting up Python environments, [A Hitchhiker's Guide to Python](https://docs.python-guide.org/) provides advice and several different ways to accomplish this.
+
 ## Running the program
 
 usage: `python vopd.py [-h] [--window WINDOW] [--context CONTEXT] [--subjectfile SUBJECTFILE] [--keywordfile KEYWORDFILE] [---normalizefile NORMALIZEFILE] [--mode MODE] transcript`
