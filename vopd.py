@@ -94,6 +94,8 @@ if __name__ == '__main__':
                         default='normalize_terms.csv')
     parser.add_argument('--mode', help='Mode: pdf or tweets', type=str,
                         default='pdf')
+    parser.add_argument("--verbose", help="increase output verbosity",
+                        action="store_true")
     parser.add_argument('transcript', help='filepath to transcript pdf or directory, or to SFM extract Excel file')
 
     args = parser.parse_args()
@@ -120,11 +122,19 @@ if __name__ == '__main__':
     pdfdocset = None
     headers = []
     if args.mode == 'pdf':
+        if args.verbose:
+            print("Getting pdfdocset...")
         pdfdocset = PDFTranscriptDocumentSet(args.transcript)
+        if args.verbose:
+            print("                   ...complete")
         headers = ['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'extract']
         extractfilename = 'extracts-pdf.csv'
     if args.mode == 'tweets':
+        if args.verbose:
+            print("Getting tweetdocset...")
         tweetdocset = SFMExtractDocumentSet(args.transcript)
+        if args.verbose:
+            print("                   ...complete")
         headers = ['extract_date', 'tweet_id', 'created_date', 'user_screen_name', 'tweet_url', 'tweet_type', 'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'text']
         extractfilename = 'extracts-tweets.csv'
 
@@ -185,6 +195,8 @@ if __name__ == '__main__':
                 extract_csv.writerow(headers)
 
             for tweet in tweetdocset:
+                if args.verbose:
+                    print('Checking a tweet')
                 tweet_info = tweet.metadata
 
                 #m_tweet_account = tweet_info['user_screen_name']
@@ -193,13 +205,14 @@ if __name__ == '__main__':
                 m_transcript_words = tokenize(m_transcript_text)
                 for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_document_iter(m_transcript_words,
                                                                                                 window_size=args.window):
+                    if args.verbose:
+                        print('    Found a match')
                     extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
 
                     extract = ' '.join(
                         context(m_transcript_words, min(m_subject_pos, m_keyword_pos),
                                 max(m_subject_pos, m_keyword_pos),
                                 context_size=args.context))
-
                     extract_csv.writerow([extract_date,
                                           tweet_info['id'],
                                           tweet_info['created_date'],
