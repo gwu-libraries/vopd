@@ -20,6 +20,7 @@ optional arguments:
   --keywordfile KEYWORDFILE   keyword list file (default = keywords.csv)
   --normalizefile NORMALIZEFILE   normalize terms file (default = normalize_terms.csv)
   --mode MODE        processing mode, either `pdf` or `tweets` (default = pdf)
+  --verbose          verbose output during execution
 ```
 
 PDF Transcript files must be named using the following pattern:
