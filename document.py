@@ -61,6 +61,7 @@ class PDFTranscriptDocumentSet(DocumentSet):
             extract_text_to_fp(fp, text_fp)
             return text_fp.getvalue()
 
+
     def _show_data(self, show_file_path):
         show_file_name = os.path.split(show_file_path)[1]
 
@@ -76,15 +77,12 @@ class PDFTranscriptDocumentSet(DocumentSet):
         return show_info
 
 
-
 class SFMExtractDocumentSet(DocumentSet):
     def __init__(self, sfmfilepath):
         """ Initialize with the path to a (single) SFM extract Excel file"""
-
         # must be an .xlsx file!
-        wb = load_workbook(filename=sfmfilepath)
+        wb = load_workbook(filename=sfmfilepath, read_only=True)
         ws = wb['Sheet1']
-
         data = ws.values
 
         # Create a DataFrame using the first row as variable/column names
@@ -93,7 +91,6 @@ class SFMExtractDocumentSet(DocumentSet):
         data = (islice(r, 0, None) for r in data)
         df = DataFrame(data, columns=cols)
         self.df_iterrows = df.iterrows()
-
 
 
     def __next__(self):
@@ -105,6 +102,7 @@ class SFMExtractDocumentSet(DocumentSet):
         doc = Document(text=text, metadata=md)
         return doc
 
+
     def _tweet_data(self, tweet):
         tweet_info = {}
         tweet_info['id'] = tweet['id']
@@ -113,6 +111,5 @@ class SFMExtractDocumentSet(DocumentSet):
         tweet_info['created_date'] = created_at[5:7]+'/'+created_at[8:10]+'/'+created_at[0:5]
         tweet_info['user_screen_name'] = tweet['user_screen_name']
         tweet_info['tweet_type'] = tweet['tweet_type']
-
         return tweet_info
 
