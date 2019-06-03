@@ -14,7 +14,7 @@ usage: `python vopd.py [-h] [--window WINDOW] [--context CONTEXT] [--subjectfile
 
 optional arguments:
   -h, --help         show this help message and exit
-  --window WINDOW    number of words that subject and keyword must be within (default = 10)
+  --window WINDOW    number of words that subject and keyword must be within (default = 5)
   --context CONTEXT  number of words before and after subject and keyword to extract (default = 20)
   --subjectfile SUBJECTFILE   subject list file (default = subjects.csv)
   --keywordfile KEYWORDFILE   keyword list file (default = keywords.csv)
