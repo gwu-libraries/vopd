@@ -113,3 +113,37 @@ class SFMExtractDocumentSet(DocumentSet):
         tweet_info['tweet_type'] = tweet['tweet_type']
         return tweet_info
 
+
+class EmailExtractDocumentSet(DocumentSet):
+    def __init__(self, emailfilepath):
+        """ Initialize with the path to a (single) SFM extract Excel file"""
+        # must be an .xlsx file!
+        wb = load_workbook(filename=emailfilepath, read_only=True)
+        ws = wb['Sheet1']
+        data = ws.values
+
+        # Create a DataFrame using the first row as variable/column names
+        cols = next(data)
+        data = list(data)
+        data = (islice(r, 0, None) for r in data)
+        df = DataFrame(data, columns=cols)
+        self.df_iterrows = df.iterrows()
+
+
+    def __next__(self):
+        """ Iterator to yield Documents, where each Tweet is a Document """
+
+        index, line = self.df_iterrows.__next__()
+        text = line['Message']
+        md = self._email_data(line)
+        doc = Document(text=text, metadata=md)
+        return doc
+
+
+    def _email_data(self, email):
+        email_info = {}
+        email_info['Date'] = email['Date']
+        email_info['From'] = email['From']
+        email_info['Subject'] = email['Subject']
+        return email_info
+
