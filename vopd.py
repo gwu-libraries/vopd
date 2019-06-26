@@ -250,21 +250,21 @@ if __name__ == '__main__':
 
             for email in emaildocset:
                 if args.verbose:
-                    print('Checking an email')
+                    print('Checking an email dated ' + str(email.metadata['Date']))
                 email_info = email.metadata
 
                 m_transcript_text = email.text
-                if args.verbose:
-                    print('Email metadata is:')
-                    print(email.metadata)
-                    print('Email text is:')
-                    print(email.text)
+#                if args.verbose:
+#                    print('Email metadata is:')
+#                    print(email.metadata)
+#                    print('Email text is:')
+#                    print(email.text)
                 email_info = email.metadata
                 m_transcript_words = tokenize(m_transcript_text)
                 for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_document_iter(m_transcript_words,
                                                                                                 window_size=args.window):
-                    if args.verbose:
-                        print('    Found a match')
+#                    if args.verbose:
+#                        print('    Found a match')
                     extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
 
                     extract = ' '.join(
