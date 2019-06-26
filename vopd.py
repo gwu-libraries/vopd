@@ -1,7 +1,7 @@
 import argparse
 import csv
 import datetime
-from document import PDFTranscriptDocumentSet, SFMExtractDocumentSet
+from document import PDFTranscriptDocumentSet, SFMExtractDocumentSet, EmailExtractDocumentSet
 import os
 import re
 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
                         default='keywords.csv')
     parser.add_argument('--normalizefile', help='normalize terms file (default = normalize_terms.csv)', type=argparse.FileType('r'),
                         default='normalize_terms.csv')
-    parser.add_argument('--mode', help='Mode: pdf or tweets', type=str,
+    parser.add_argument('--mode', help='Mode: pdf or tweets or email', type=str,
                         default='pdf')
     parser.add_argument("--verbose", help="increase output verbosity",
                         action="store_true")
@@ -127,7 +127,8 @@ if __name__ == '__main__':
         pdfdocset = PDFTranscriptDocumentSet(args.transcript)
         if args.verbose:
             print("                   ...complete")
-        headers = ['extract_date', 'file', 'show_date', 'show_id', 'show_name', 'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'extract']
+        headers = ['extract_date', 'file', 'show_date', 'show_id', 'show_name',
+                   'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'extract']
         extractfilename = 'extracts-pdf.csv'
     if args.mode == 'tweets':
         if args.verbose:
@@ -135,8 +136,18 @@ if __name__ == '__main__':
         tweetdocset = SFMExtractDocumentSet(args.transcript)
         if args.verbose:
             print("                   ...complete")
-        headers = ['extract_date', 'tweet_id', 'created_date', 'user_screen_name', 'tweet_url', 'tweet_type', 'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'text']
+        headers = ['extract_date', 'tweet_id', 'created_date', 'user_screen_name', 'tweet_url', 'tweet_type',
+                   'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'text']
         extractfilename = 'extracts-tweets.csv'
+    if args.mode == 'email':
+        if args.verbose:
+            print("Getting emaildocset...")
+        emaildocset = EmailExtractDocumentSet(args.transcript)
+        if args.verbose:
+            print("                   ...complete")
+        headers = ['extract_date', 'email_date', 'email_from', 'email_subject',
+                   'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'text']
+        extractfilename = 'extracts-email.csv'
 
     # If extracts.csv exists, append to it rather than overwriting it.
     if os.path.exists(extractfilename):
@@ -219,6 +230,51 @@ if __name__ == '__main__':
                                           tweet_info['user_screen_name'],
                                           tweet_info['tweet_url'],
                                           tweet_info['tweet_type'],
+                                          m_subject,
+                                          subject_map[m_subject],
+                                          m_keyword,
+                                          keyword_map[m_keyword],
+                                          keyword_id[m_keyword],
+                                          '',
+                                          extract])
+
+    if args.mode == 'email':
+        with open('extracts-email.csv', file_mode) as extract_file:
+            # If the file was previously saved using Excel, it will be lacking a final \n character.
+            # So, we need to check if it's missing; if so, add it so that appending starts on a new line.
+            if append_extracts:
+                fix_newline(extract_file)
+            extract_csv = csv.writer(extract_file)
+            if not append_extracts:
+                extract_csv.writerow(headers)
+
+            for email in emaildocset:
+                if args.verbose:
+                    print('Checking an email dated ' + str(email.metadata['Date']))
+                email_info = email.metadata
+
+                m_transcript_text = email.text
+#                if args.verbose:
+#                    print('Email metadata is:')
+#                    print(email.metadata)
+#                    print('Email text is:')
+#                    print(email.text)
+                email_info = email.metadata
+                m_transcript_words = tokenize(m_transcript_text)
+                for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_document_iter(m_transcript_words,
+                                                                                                window_size=args.window):
+#                    if args.verbose:
+#                        print('    Found a match')
+                    extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
+
+                    extract = ' '.join(
+                        context(m_transcript_words, min(m_subject_pos, m_keyword_pos),
+                                max(m_subject_pos, m_keyword_pos),
+                                context_size=args.context))
+                    extract_csv.writerow([extract_date,
+                                          email_info['Date'],
+                                          email_info['From'],
+                                          email_info['Subject'],
                                           m_subject,
                                           subject_map[m_subject],
                                           m_keyword,
