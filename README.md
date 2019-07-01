@@ -23,7 +23,7 @@ optional arguments:
   --verbose          verbose output during execution
 ```
 
-*PDF Transcript files* must be named using the following pattern:
+**PDF Transcript files** must be named using the following pattern:
 
 `MM_DD_YYYY_NNN_Name Of The Show.pdf`
 
@@ -32,9 +32,9 @@ where:
  - `NNN` is the show code/number
 (any separator character is okay - but positions of the values are important)
 
-*SFM extract files* must be Excel files output by [Social Feed Manager](https://gwu-libraries.github.io/sfm-ui/) with columns as per https://sfm.readthedocs.io/en/latest/data_dictionary.html?highlight=export#twitter-dictionary
+**SFM extract files** must be Excel files output by [Social Feed Manager](https://gwu-libraries.github.io/sfm-ui/) with columns as per https://sfm.readthedocs.io/en/latest/data_dictionary.html?highlight=export#twitter-dictionary
 
-*Email extract files* must be Excel files with the following columns:
+**Email extract files** must be Excel files with the following columns:
 * Date
 * From
 * Sender
