@@ -19,11 +19,11 @@ optional arguments:
   --subjectfile SUBJECTFILE   subject list file (default = subjects.csv)
   --keywordfile KEYWORDFILE   keyword list file (default = keywords.csv)
   --normalizefile NORMALIZEFILE   normalize terms file (default = normalize_terms.csv)
-  --mode MODE        processing mode, either `pdf` or `tweets` (default = pdf)
+  --mode MODE        processing mode, either `pdf` or `tweets` or `email` (default = pdf)
   --verbose          verbose output during execution
 ```
 
-PDF Transcript files must be named using the following pattern:
+*PDF Transcript files* must be named using the following pattern:
 
 `MM_DD_YYYY_NNN_Name Of The Show.pdf`
 
@@ -32,13 +32,21 @@ where:
  - `NNN` is the show code/number
 (any separator character is okay - but positions of the values are important)
 
+*SFM extract files* must be Excel files output by [Social Feed Manager](https://gwu-libraries.github.io/sfm-ui/) with columns as per https://sfm.readthedocs.io/en/latest/data_dictionary.html?highlight=export#twitter-dictionary
+
+*Email extract files* must be Excel files with the following columns:
+* Date
+* From
+* Sender
+* Message
+
 
 ## Output files
 
-**`extracts-[pdf OR tweets].csv`** - All instances of a keyword and a subject found within "n" number
+**`extracts-[pdf OR tweets OR email].csv`** - All instances of a keyword and a subject found within "n" number
 of words of each other, where "n" is the configured window size.
 
-Note that if `extracts-[pdf OR tweets].csv` already exists, it will be appended to.  If you wish to overwrite, simply delete or rename it.
+Note that if `extracts-[pdf OR tweets OR email].csv` already exists, it will be appended to.  If you wish to overwrite, simply delete or rename it.
 
 
 ## recycle_keywords.py utility
