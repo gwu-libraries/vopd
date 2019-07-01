@@ -252,8 +252,8 @@ if __name__ == '__main__':
                 if args.verbose:
                     print('Checking an email dated ' + str(email.metadata['Date']))
                 email_info = email.metadata
-
                 m_transcript_text = email.text
+
 #                if args.verbose:
 #                    print('Email metadata is:')
 #                    print(email.metadata)

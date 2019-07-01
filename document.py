@@ -1,8 +1,6 @@
-from openpyxl import load_workbook
-from pandas import DataFrame
-from itertools import islice
 import io
 import os
+import pandas as pd
 import sys
 from pdfminer.high_level import extract_text_to_fp
 
@@ -81,15 +79,7 @@ class SFMExtractDocumentSet(DocumentSet):
     def __init__(self, sfmfilepath):
         """ Initialize with the path to a (single) SFM extract Excel file"""
         # must be an .xlsx file!
-        wb = load_workbook(filename=sfmfilepath, read_only=True)
-        ws = wb['Sheet1']
-        data = ws.values
-
-        # Create a DataFrame using the first row as variable/column names
-        cols = next(data)
-        data = list(data)
-        data = (islice(r, 0, None) for r in data)
-        df = DataFrame(data, columns=cols)
+        df = pd.read_excel(sfmfilepath, dtype=str, keep_default_na=False)
         self.df_iterrows = df.iterrows()
 
 
@@ -118,22 +108,15 @@ class EmailExtractDocumentSet(DocumentSet):
     def __init__(self, emailfilepath):
         """ Initialize with the path to a (single) SFM extract Excel file"""
         # must be an .xlsx file!
-        wb = load_workbook(filename=emailfilepath, read_only=True)
-        ws = wb['Sheet1']
-        data = ws.values
 
-        # Create a DataFrame using the first row as variable/column names
-        cols = next(data)
-        data = list(data)
-        data = (islice(r, 0, None) for r in data)
-        df = DataFrame(data, columns=cols)
+        df = pd.read_excel(emailfilepath, dtype=str, keep_default_na=False)
         self.df_iterrows = df.iterrows()
 
 
     def __next__(self):
         """ Iterator to yield Documents, where each Tweet is a Document """
 
-        index, line = self.df_iterrows.__next__()
+        index, line = next(self.df_iterrows)
         text = line['Message']
         md = self._email_data(line)
         doc = Document(text=text, metadata=md)

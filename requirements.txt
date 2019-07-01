@@ -1,4 +1,4 @@
 nltk==3.3
 pdfminer.six==20170720
-openpyxl
 pandas
+xlrd
