@@ -128,7 +128,10 @@ if __name__ == '__main__':
         if args.verbose:
             print("                   ...complete")
         headers = ['extract_date', 'file', 'show_date', 'show_id', 'show_name',
-                   'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'extract']
+                   'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id',
+                   'Code (N/1-6)', 'A/B', 'Foreign/Domestic', 'Notes', 'Feedback',
+                   'extract',
+                   'Code (N/1-6)', 'A/B', 'Foreign/Domestic', 'Notes', 'Feedback']
         extractfilename = 'extracts-pdf.csv'
     if args.mode == 'tweets':
         if args.verbose:
@@ -137,7 +140,10 @@ if __name__ == '__main__':
         if args.verbose:
             print("                   ...complete")
         headers = ['extract_date', 'tweet_id', 'created_date', 'user_screen_name', 'tweet_url', 'tweet_type',
-                   'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'text']
+                   'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id',
+                   'Code (N, or 1-6)', 'A/B', 'Foreign/Domestic', 'Notes', 'Feedback',
+                   'text',
+                   'Code (N, or 1-6)', 'A/B', 'Foreign/Domestic', 'Notes', 'Feedback']
         extractfilename = 'extracts-tweets.csv'
     if args.mode == 'email':
         if args.verbose:
@@ -146,7 +152,10 @@ if __name__ == '__main__':
         if args.verbose:
             print("                   ...complete")
         headers = ['extract_date', 'email_date', 'email_from', 'email_subject',
-                   'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id', 'relevant?', 'text']
+                   'subject', 'subject_code', 'keyword', 'keyword_code', 'keyword_id',
+                   'Code (N, or 1-6)', 'A/B', 'Foreign/Domestic', 'Notes', 'Feedback',
+                   'text',
+                   'Code (N, or 1-6)', 'A/B', 'Foreign/Domestic', 'Notes', 'Feedback']
         extractfilename = 'extracts-email.csv'
 
     # If extracts.csv exists, append to it rather than overwriting it.
@@ -193,7 +202,7 @@ if __name__ == '__main__':
                                           m_keyword,
                                           keyword_map[m_keyword],
                                           keyword_id[m_keyword],
-                                          '',
+                                          '', '', '', '', '',
                                           extract])
     if args.mode == 'tweets':
         with open('extracts-tweets.csv', file_mode) as extract_file:
@@ -235,7 +244,7 @@ if __name__ == '__main__':
                                           m_keyword,
                                           keyword_map[m_keyword],
                                           keyword_id[m_keyword],
-                                          '',
+                                          '', '', '', '', '',
                                           extract])
 
     if args.mode == 'email':
@@ -280,6 +289,6 @@ if __name__ == '__main__':
                                           m_keyword,
                                           keyword_map[m_keyword],
                                           keyword_id[m_keyword],
-                                          '',
+                                          '', '', '', '', '',
                                           extract])
 
