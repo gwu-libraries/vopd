@@ -1,13 +1,17 @@
 import argparse
+import config
 import csv
 import datetime
 from document import PDFTranscriptDocumentSet, SFMExtractDocumentSet, EmailExtractDocumentSet
 import os
+import pytz
 import re
 
 from nltk.tokenize import word_tokenize
 import nltk
 nltk.download('punkt')
+
+TIME_ZONE = config.time_zone
 
 # global variables
 subject_map = {}
@@ -185,7 +189,7 @@ if __name__ == '__main__':
                 m_transcript_words = tokenize(m_transcript_text)
                 for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_document_iter(m_transcript_words,
                                                                                                 window_size=args.window):
-                    extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
+                    extract_date = datetime.datetime.now(tz=pytz.timezone(TIME_ZONE)).strftime("%m/%d/%y %H:%M:%S %Z%z")
 
                     extract = ' '.join(
                         context(m_transcript_words, min(m_subject_pos, m_keyword_pos),
@@ -219,6 +223,10 @@ if __name__ == '__main__':
                     print('Checking a tweet')
                 tweet_info = tweet.metadata
 
+                # Convert created_date to local time zone
+                date_time_obj = datetime.datetime.strptime(tweet_info['created_at'], '%a %b %d %H:%M:%S %z %Y')
+                tweet_info['created_date'] = date_time_obj.astimezone(pytz.timezone('US/Eastern')).strftime("%m/%d/%y %H:%M:%S %Z %z")
+
                 #m_tweet_account = tweet_info['user_screen_name']
                 # print('Processing {}'.format(m_transcript_filepath))
                 m_transcript_text = tweet.text
@@ -227,7 +235,7 @@ if __name__ == '__main__':
                                                                                                 window_size=args.window):
                     if args.verbose:
                         print('    Found a match')
-                    extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
+                    extract_date = datetime.datetime.now(tz=pytz.timezone(TIME_ZONE)).strftime("%m/%d/%y %H:%M:%S %Z%z")
 
                     extract = ' '.join(
                         context(m_transcript_words, min(m_subject_pos, m_keyword_pos),
@@ -274,7 +282,7 @@ if __name__ == '__main__':
                                                                                                 window_size=args.window):
 #                    if args.verbose:
 #                        print('    Found a match')
-                    extract_date = datetime.datetime.now().strftime("%m/%d/%y %H:%M:%S")
+                    extract_date = datetime.datetime.now(tz=pytz.timezone(TIME_ZONE)).strftime("%m/%d/%y %H:%M:%S %Z%z")
 
                     extract = ' '.join(
                         context(m_transcript_words, min(m_subject_pos, m_keyword_pos),

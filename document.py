@@ -95,10 +95,9 @@ class SFMExtractDocumentSet(DocumentSet):
 
     def _tweet_data(self, tweet):
         tweet_info = {}
-        tweet_info['id'] = tweet['id']
+        tweet_info['id'] = "'"+tweet['id']+"'"
         tweet_info['tweet_url'] = tweet['tweet_url']
-        created_at = tweet['parsed_created_at']
-        tweet_info['created_date'] = created_at[5:7]+'/'+created_at[8:10]+'/'+created_at[0:5]
+        tweet_info['created_at'] = tweet['created_at']
         tweet_info['user_screen_name'] = tweet['user_screen_name']
         tweet_info['tweet_type'] = tweet['tweet_type']
         return tweet_info
