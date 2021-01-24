@@ -1,4 +1,5 @@
 nltk==3.4.5
 pdfminer.six==20170720
 pandas
+pytz
 xlrd
