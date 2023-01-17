@@ -1,4 +1,7 @@
 # vopd
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3526765.svg)](https://doi.org/10.5281/zenodo.3526765)
+
+
 Code supporting the "Monitoring Hate Speech in the US Media" project, of Prof. Babak Bahador's group in the GW School of Media and Public Affairs.
 
 ## Installation
