@@ -110,3 +110,10 @@ extracts.csv
 keyword_extracts.csv
 neg_extracts.csv
 subject_extracts.csv
+
+# VSCode
+.vscode
+.vscode/*
+
+# ENV
+.env

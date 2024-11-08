@@ -1,8 +1,10 @@
+# fmt: off
+
 import argparse
 import config
 import csv
 import datetime
-from document import PDFTranscriptDocumentSet, SFMExtractDocumentSet, EmailExtractDocumentSet
+from document import PDFTranscriptDocumentSet, SFMExtractDocumentSet, EmailExtractDocumentSet, BDTwitterDocumentSet
 import os
 import pytz
 import re
@@ -96,11 +98,11 @@ if __name__ == '__main__':
                         default='keywords.csv')
     parser.add_argument('--normalizefile', help='normalize terms file (default = normalize_terms.csv)', type=argparse.FileType('r'),
                         default='normalize_terms.csv')
-    parser.add_argument('--mode', help='Mode: pdf or tweets or email', type=str,
+    parser.add_argument('--mode', help='Mode: pdf or tweets or bdtweets or email', type=str,
                         default='pdf')
     parser.add_argument("--verbose", help="increase output verbosity",
                         action="store_true")
-    parser.add_argument('transcript', help='filepath to transcript pdf or directory, or to SFM extract Excel file')
+    parser.add_argument('transcript', help='filepath to transcript pdf or directory, to SFM extract Excel file, or to BrightData extract CSV')
 
     args = parser.parse_args()
 
@@ -149,6 +151,17 @@ if __name__ == '__main__':
                    'text',
                    'Code (N, or 1-6)', 'A/B', 'Foreign/Domestic', 'Notes', 'Feedback']
         extractfilename = 'extracts-tweets.csv'
+    if args.mode == 'bdtweets':
+        if args.verbose:
+            print("Getting bdtweetdocset...")
+        bdtweetdocset = BDTwitterDocumentSet(args.transcript)
+        if args.verbose:
+            print("                   ...complete")
+        headers = ['Date', 'Handle', 'Name', 'Party', 'House/Senate', 'Incumbent/Challenger', 'Tweet',
+                   'Sentiment Word', 'Group Term', 'Sentiment Tone (N/P)', 'Group Type (C, I, F, O, P)',
+                   'Coding Decision (see code book)'
+                   ]
+        extractfilename = 'bd-extracts-tweets.csv'
     if args.mode == 'email':
         if args.verbose:
             print("Getting emaildocset...")
@@ -254,6 +267,43 @@ if __name__ == '__main__':
                                           keyword_id[m_keyword],
                                           '', '', '', '', '',
                                           extract])
+    
+    if args.mode == 'bdtweets':
+        with open('bd-extracts-tweets.csv', file_mode) as extract_file:
+            extract_csv = csv.writer(extract_file)
+            if not append_extracts:
+                extract_csv.writerow(headers)
+                
+            for tweet in bdtweetdocset:
+                if args.verbose:
+                    print('Checking a tweet')
+                tweet_info = tweet.metadata
+                m_transcript_text = str(tweet.text)
+                m_transcript_words = tokenize(m_transcript_text)
+                for m_subject, m_subject_pos, m_keyword, m_keyword_pos in process_document_iter(m_transcript_words, window_size=args.window):
+                    if args.verbose:
+                        print('     Found a match')
+                    extract_date = datetime.datetime.now(tz=pytz.timezone(TIME_ZONE)).strftime("%m/%d/%y %H:%M:%S %Z%z")
+                    
+                    extract = ' '.join(
+                        context(m_transcript_words, min(m_subject_pos, m_keyword_pos),
+                                max(m_subject_pos, m_keyword_pos),
+                                context_size=args.context))
+                    extract_csv.writerow([tweet_info['timestamp'], # Date
+                                          tweet_info['user_screen_name'], # handle
+                                          tweet_info['name'], # name
+                                          "", # party - fill in later via vlookup
+                                          "", # house/senate - fill in later via vlookup
+                                          "", # incumbent/challenger - fill in later via vlookup
+                                          tweet_info['description'], # tweet
+                                          m_keyword, # sentiment word
+                                          m_subject, # group name
+                                          keyword_map[m_keyword], # sentiment tone, N or P
+                                          subject_map[m_subject][0],
+                                          "", # coding decision - leave blank
+                                          extract
+                    ])
+                
 
     if args.mode == 'email':
         with open('extracts-email.csv', file_mode) as extract_file:
@@ -299,4 +349,3 @@ if __name__ == '__main__':
                                           keyword_id[m_keyword],
                                           '', '', '', '', '',
                                           extract])
-

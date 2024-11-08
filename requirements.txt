@@ -3,3 +3,5 @@ pdfminer.six==20170720
 pandas
 pytz
 xlrd
+requests
+python-dotenv
